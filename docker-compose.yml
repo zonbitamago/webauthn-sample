@@ -1,0 +1,11 @@
+version: '3'
+services:
+  golang:
+    build: ./backend
+    container_name: backend
+    tty: true
+    command: go run main.go
+    ports:
+      - 1323:1323
+    volumes:
+      - ./backend:/go/src

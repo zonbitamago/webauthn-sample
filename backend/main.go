@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -37,10 +40,15 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
+	// session準備
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	// sessionに登録する構造体を登録する。
+	gob.Register(webauthn.SessionData{})
+
 	e.GET("/", index)
 
 	e.GET("/register/begin/:username", BeginRegistration)
-	// e.POST("/register/finish/{username}", FinishRegistration)
+	e.POST("/register/finish/:username", FinishRegistration)
 	// e.GET("/login/begin/{username}", BeginLogin)
 	// e.POST("/login/finish/{username}", FinishLogin)
 
@@ -58,6 +66,13 @@ type ErrorResponse struct {
 }
 
 func BeginRegistration(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
+		Secure:   false,
+	}
 
 	// get username/friendly name
 	username := c.Param("username")
@@ -83,7 +98,7 @@ func BeginRegistration(c echo.Context) error {
 
 	// generate PublicKeyCredentialCreationOptions, session data
 	// options, sessionData, err := webAuthn.BeginRegistration(
-	options, _, err := webAuthn.BeginRegistration(
+	options, sessionData, err := webAuthn.BeginRegistration(
 		user,
 		registerOptions,
 	)
@@ -98,14 +113,57 @@ func BeginRegistration(c echo.Context) error {
 	}
 
 	// store session data as marshaled JSON
-	// err = sessionStore.SaveWebauthnSession("registration", sessionData, r, w)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	jsonResponse(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
+	sess.Values["registration"] = sessionData
+	err = sess.Save(c.Request(), c.Response())
+	if err != nil {
+		c.Logger().Error(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusInternalServerError)
+	}
 
 	return jsonResponse(c, options, http.StatusOK)
+}
+
+func FinishRegistration(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+
+	// get username
+	username := c.Param("username")
+
+	// get user
+	user, err := userDB.GetUser(username)
+
+	// user doesn't exist
+	if err != nil {
+		log.Println(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusBadRequest)
+	}
+
+	// load the session data
+	sessionData := sess.Values["registration"].(webauthn.SessionData)
+	fmt.Printf("sessionData:%v\n", sessionData)
+
+	credential, err := webAuthn.FinishRegistration(user, sessionData, c.Request())
+	if err != nil {
+		log.Println(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusBadRequest)
+	}
+
+	user.AddCredential(*credential)
+
+	// jsonResponse(w, "Registration Success", http.StatusOK)
+	return jsonResponse(c, "Registration Success", http.StatusOK)
 }
 
 func jsonResponse(c echo.Context, d interface{}, httpStatus int) error {

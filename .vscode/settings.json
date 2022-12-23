@@ -2,6 +2,7 @@
   "editor.defaultFormatter": "golang.go",
   "cSpell.words": [
     "labstack",
+    "sess",
     "userdb",
     "webauthn"
   ]

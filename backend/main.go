@@ -39,6 +39,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORS())
 
 	// session準備
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))

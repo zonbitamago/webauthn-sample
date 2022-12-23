@@ -4,11 +4,6 @@ services:
     build: ./backend
     container_name: backend
     tty: true
-    command: >
-      sh -c "
-        go build &&
-        ./webauthn-sample-backend
-      "
     ports:
       - 1323:1323
     volumes:

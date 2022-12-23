@@ -1,6 +1,6 @@
-version: '3'
+version: '3.9'
 services:
-  golang:
+  backend:
     build: ./backend
     container_name: backend
     tty: true
@@ -13,3 +13,21 @@ services:
       - 1323:1323
     volumes:
       - ./backend:/go/src
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    tty: true
+    volumes:
+      - ./frontend:/home/node/app
+      - node_modules:/home/node/app/node_modules
+    working_dir: /home/node/app
+    command: >
+      sh -c "
+        yarn &&
+        yarn dev
+      "
+    ports:
+      - 5173:5173
+
+volumes:
+  node_modules:

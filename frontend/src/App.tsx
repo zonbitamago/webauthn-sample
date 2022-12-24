@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 
+const API_ROOT_PATH = "http://localhost/api";
+
 function App() {
   const [name, setName] = useState("");
 
@@ -19,10 +21,9 @@ function App() {
   }
 
   const registrationHandler = async () => {
-    const result = await axios.get(
-      `http://localhost/api/register/begin/${name}`,
-      { withCredentials: true }
-    );
+    const result = await axios.get(`${API_ROOT_PATH}/register/begin/${name}`, {
+      withCredentials: true,
+    });
     const data = result.data;
 
     data.publicKey.challenge = bufferDecode(data.publicKey.challenge);
@@ -49,7 +50,7 @@ function App() {
 
     try {
       const finishData = await axios.post(
-        `http://localhost/api/register/finish/${name}`,
+        `${API_ROOT_PATH}/register/finish/${name}`,
         {
           id: credential?.id,
           rawId: bufferEncode(rawId),

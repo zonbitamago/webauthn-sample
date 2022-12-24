@@ -1,23 +1,22 @@
 package main
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"webauthn-sample-backend/webauthn_session"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 var webAuthn *webauthn.WebAuthn
 var userDB *userdb
+var webauthnSession *webauthn_session.WebauthnSession
 
 // var sessionStore *session.Store
 
@@ -61,9 +60,8 @@ func main() {
 		}))
 
 	// session準備
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
-	// sessionに登録する構造体を登録する。
-	gob.Register(webauthn.SessionData{})
+	webauthnSession = webauthn_session.NewWebauthnSession()
+	webauthnSession.AddSessionMiddleware(e)
 
 	e.GET("/api/", index)
 
@@ -86,14 +84,7 @@ type ErrorResponse struct {
 }
 
 func BeginRegistration(c echo.Context) error {
-	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteDefaultMode,
-	}
+	webauthnSession.CreateSession(c)
 
 	// get username/friendly name
 	username := c.Param("username")
@@ -133,8 +124,8 @@ func BeginRegistration(c echo.Context) error {
 	}
 
 	// store session data as marshaled JSON
-	sess.Values["registration"] = sessionData
-	err = sess.Save(c.Request(), c.Response())
+	webauthnSession.SetValue("registration", sessionData)
+	err = webauthnSession.Save(c)
 	if err != nil {
 		c.Logger().Error(err)
 		er := &ErrorResponse{
@@ -148,7 +139,7 @@ func BeginRegistration(c echo.Context) error {
 }
 
 func FinishRegistration(c echo.Context) error {
-	sess, _ := session.Get("session", c)
+	webauthnSession.CreateSession(c)
 
 	// get username
 	username := c.Param("username")
@@ -167,8 +158,7 @@ func FinishRegistration(c echo.Context) error {
 	}
 
 	// load the session data
-	sessionData := sess.Values["registration"].(webauthn.SessionData)
-	fmt.Printf("sessionData:%v\n", sessionData)
+	sessionData := webauthnSession.GetValue("registration").(webauthn.SessionData)
 
 	credential, err := webAuthn.FinishRegistration(user, sessionData, c.Request())
 	if err != nil {

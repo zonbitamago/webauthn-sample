@@ -7,3 +7,5 @@ webauthのサンプル実装
 ```shell
 docker-compose up
 ```
+
+`http://localhost` on browser

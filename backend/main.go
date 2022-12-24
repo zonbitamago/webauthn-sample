@@ -67,8 +67,8 @@ func main() {
 
 	e.GET("/api/register/begin/:username", BeginRegistration)
 	e.POST("/api/register/finish/:username", FinishRegistration)
-	// e.GET("/api/login/begin/{username}", BeginLogin)
-	// e.POST("/api/login/finish/{username}", FinishLogin)
+	e.GET("/api/login/begin/{username}", BeginLogin)
+	e.POST("/api/login/finish/{username}", FinishLogin)
 
 	port := 1323
 	e.Logger.Info(fmt.Sprintf("ServerStartUp! port:%v", port))
@@ -173,6 +173,82 @@ func FinishRegistration(c echo.Context) error {
 	user.AddCredential(*credential)
 
 	return jsonResponse(c, "Registration Success", http.StatusOK)
+}
+
+func BeginLogin(c echo.Context) error {
+	webauthnSession.CreateSession(c)
+
+	// get username
+	username := c.Param("username")
+
+	// get user
+	user, err := userDB.GetUser(username)
+
+	// user doesn't exist
+	if err != nil {
+		log.Println(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusBadRequest)
+	}
+
+	// generate PublicKeyCredentialRequestOptions, session data
+	options, sessionData, err := webAuthn.BeginLogin(user)
+	if err != nil {
+		log.Println(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusInternalServerError)
+	}
+
+	// store session data as marshaled JSON
+
+	webauthnSession.SetValue("authentication", sessionData)
+	webauthnSession.Save(c)
+
+	return jsonResponse(c, options, http.StatusOK)
+}
+
+func FinishLogin(c echo.Context) error {
+
+	// get username
+	username := c.Param("username")
+
+	// get user
+	user, err := userDB.GetUser(username)
+
+	// user doesn't exist
+	if err != nil {
+		log.Println(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusBadRequest)
+	}
+
+	// load the session data
+	sessionData := webauthnSession.GetValue("authentication").(webauthn.SessionData)
+
+	// in an actual implementation, we should perform additional checks on
+	// the returned 'credential', i.e. check 'credential.Authenticator.CloneWarning'
+	// and then increment the credentials counter
+	_, err = webAuthn.FinishLogin(user, sessionData, c.Request())
+	if err != nil {
+		log.Println(err)
+		er := &ErrorResponse{
+			Message: err.Error(),
+		}
+
+		return jsonResponse(c, er, http.StatusBadRequest)
+	}
+
+	// handle successful login
+	return jsonResponse(c, "Login Success", http.StatusOK)
 }
 
 func jsonResponse(c echo.Context, d interface{}, httpStatus int) error {

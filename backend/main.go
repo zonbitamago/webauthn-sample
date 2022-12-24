@@ -1,5 +1,8 @@
 package main
 
+// 以下を参考に実装
+// https://github.com/hbolimovsky/webauthn-example/blob/master/server.go
+
 import (
 	"encoding/json"
 	"fmt"

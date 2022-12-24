@@ -21,8 +21,6 @@ var webAuthn *webauthn.WebAuthn
 var userDB *userdb
 var webauthnSession *webauthn_session.WebauthnSession
 
-// var sessionStore *session.Store
-
 func main() {
 
 	var err error
@@ -70,8 +68,8 @@ func main() {
 
 	e.GET("/api/register/begin/:username", BeginRegistration)
 	e.POST("/api/register/finish/:username", FinishRegistration)
-	e.GET("/api/login/begin/{username}", BeginLogin)
-	e.POST("/api/login/finish/{username}", FinishLogin)
+	e.GET("/api/login/begin/:username", BeginLogin)
+	e.POST("/api/login/finish/:username", FinishLogin)
 
 	port := 1323
 	e.Logger.Info(fmt.Sprintf("ServerStartUp! port:%v", port))
@@ -217,6 +215,7 @@ func BeginLogin(c echo.Context) error {
 }
 
 func FinishLogin(c echo.Context) error {
+	webauthnSession.CreateSession(c)
 
 	// get username
 	username := c.Param("username")

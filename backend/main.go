@@ -40,7 +40,8 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	// e.Use(middleware.CORS())
+
+	// CORS設定
 	e.Use(middleware.CORSWithConfig(
 		middleware.CORSConfig{
 			// Method
@@ -51,10 +52,6 @@ func main() {
 				http.MethodDelete,
 				http.MethodOptions,
 			},
-			// Header
-			// AllowHeaders: []string{
-			// 	echo.HeaderOrigin,
-			// },
 			// Origin
 			AllowOrigins: []string{
 				"http://localhost",
@@ -121,7 +118,6 @@ func BeginRegistration(c echo.Context) error {
 	}
 
 	// generate PublicKeyCredentialCreationOptions, session data
-	// options, sessionData, err := webAuthn.BeginRegistration(
 	options, sessionData, err := webAuthn.BeginRegistration(
 		user,
 		registerOptions,
@@ -186,7 +182,6 @@ func FinishRegistration(c echo.Context) error {
 
 	user.AddCredential(*credential)
 
-	// jsonResponse(w, "Registration Success", http.StatusOK)
 	return jsonResponse(c, "Registration Success", http.StatusOK)
 }
 

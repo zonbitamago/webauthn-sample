@@ -39,19 +39,41 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
-	e.Use(middleware.CORS())
+	e.Use(middleware.Recover())
+	// e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(
+		middleware.CORSConfig{
+			// Method
+			AllowMethods: []string{
+				http.MethodGet,
+				http.MethodPut,
+				http.MethodPost,
+				http.MethodDelete,
+				http.MethodOptions,
+			},
+			// Header
+			// AllowHeaders: []string{
+			// 	echo.HeaderOrigin,
+			// },
+			// Origin
+			AllowOrigins: []string{
+				"http://localhost",
+			},
+			// CORS
+			AllowCredentials: true,
+		}))
 
 	// session準備
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	// sessionに登録する構造体を登録する。
 	gob.Register(webauthn.SessionData{})
 
-	e.GET("/", index)
+	e.GET("/api/", index)
 
-	e.GET("/register/begin/:username", BeginRegistration)
-	e.POST("/register/finish/:username", FinishRegistration)
-	// e.GET("/login/begin/{username}", BeginLogin)
-	// e.POST("/login/finish/{username}", FinishLogin)
+	e.GET("/api/register/begin/:username", BeginRegistration)
+	e.POST("/api/register/finish/:username", FinishRegistration)
+	// e.GET("/api/login/begin/{username}", BeginLogin)
+	// e.POST("/api/login/finish/{username}", FinishLogin)
 
 	port := 1323
 	e.Logger.Info(fmt.Sprintf("ServerStartUp! port:%v", port))
@@ -73,6 +95,7 @@ func BeginRegistration(c echo.Context) error {
 		MaxAge:   86400 * 7,
 		HttpOnly: true,
 		Secure:   false,
+		SameSite: http.SameSiteDefaultMode,
 	}
 
 	// get username/friendly name

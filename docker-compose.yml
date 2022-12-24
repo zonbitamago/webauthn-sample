@@ -1,5 +1,13 @@
 version: '3.9'
 services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    tty: true
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
   backend:
     build: ./backend
     container_name: backend

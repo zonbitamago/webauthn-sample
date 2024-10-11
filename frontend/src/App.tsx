@@ -1,7 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
+import "./style.css";
+import { Button } from "@mui/material";
 
-const API_ROOT_PATH = "http://localhost/api";
+const API_ROOT_PATH = "/api";
 
 function App() {
   const [name, setName] = useState("");
@@ -135,19 +137,41 @@ function App() {
   };
 
   return (
-    <div>
-      <div>
-        name:
+    <div
+      style={{
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <label htmlFor="name">お名前</label>
         <input
           type="text"
+          id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <br />
-        <button onClick={registrationHandler}>Registration</button>
         <br />
-        <button onClick={loginHandler}>Login</button>
+        <Button variant="contained" onClick={registrationHandler}>
+          登録
+        </Button>
         <br />
+        <br />
+        <Button variant="contained" onClick={loginHandler}>
+          ログイン
+        </Button>
+        <br />
+        <br />
+        <hr />
         isRegistered: {isRegistered.toString()}
         <br />
         isLogin: {isLogin.toString()}

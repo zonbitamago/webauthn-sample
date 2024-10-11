@@ -25,9 +25,9 @@ func main() {
 
 	var err error
 	webAuthn, err = webauthn.New(&webauthn.Config{
-		RPDisplayName: "Foobar Corp.",     // Display Name for your site
-		RPID:          "localhost",        // Generally the domain name for your site
-		RPOrigin:      "http://localhost", // The origin URL for WebAuthn requests
+		RPDisplayName: "Foobar Corp.",                               // Display Name for your site
+		RPID:          "star-united-panther.ngrok-free.app",         // Generally the domain name for your site
+		RPOrigin:      "https://star-united-panther.ngrok-free.app", // The origin URL for WebAuthn requests
 		// RPIcon: "https://duo.com/logo.png", // Optional icon URL for your site
 	})
 
@@ -54,7 +54,7 @@ func main() {
 			},
 			// Origin
 			AllowOrigins: []string{
-				"http://localhost",
+				"https://star-united-panther.ngrok-free.app",
 			},
 			// CORS
 			AllowCredentials: true,

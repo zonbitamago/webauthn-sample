@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 24px;
+    font-size: 16px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  
+  p {
+    margin: 0 0 8px;
+  }
+  
+  label {
+    font-weight: 600;
+    display: inline-block;
+    margin-right: 8px;
+  }
+  
+  .field-hint {
+    margin-top: 8px;
+    font-size: initial;
+    font-weight: initial;
+    display: block;
+    color: #555;
+    font-size: 14px;
+  }
+  
+  input {
+    margin-bottom: 32px;
+    font-size: 16px;
+    outline: none;
+    border: 1px solid #333;
+    border-radius: 4px;
+    display: inline-block;
+    min-height: 40px;
+  }
+  
+  input:not([type="submit"]) {
+    padding: 8px;
+    width: 230px;
+    max-width: 100%;
+  }
+  
+  input[id="firstName"] {
+    margin-right: 16px;
+  }
+  
+  input[name="email"],
+  input[name="password"] {
+    width: 450px;
+  }
+  
+  input[name="password"] {
+    margin-bottom: 0;
+  }
+  
+  input[type="submit"] {
+    display: block;
+    margin-top: 48px;
+    min-width: 180px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 30px;
+    background-color: #0974e8;
+    color: #fff;
+    transition: all 0.4s;
+  }
+  
+  input[type="submit"]:hover {
+    cursor: pointer;
+    background-color: #075bb7;
+  }
+  
+  .form input {
+    display: block;
+    min-height: 44px;
+  }
+  
+  .form input:focus {
+    outline: 2px solid #0974e8;
+  }
+  
+  .form input[name="name"] {
+    width: 320px;
+  }
+  
+  .form label {
+    margin-right: 0;
+    margin-bottom: 8px;
+    font-size: 18px;
+  }
+  
